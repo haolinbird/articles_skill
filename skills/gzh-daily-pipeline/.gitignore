@@ -1,0 +1,28 @@
+# 敏感配置
+.env
+
+# 流水线产物（YYYYMMDD_ 前缀）
+*_gzh.md
+*_开篇图.png
+*_图*.png
+*_topics.md
+*_abc.md
+*_final.md
+*_pipeline_report.md
+*_知乎.md
+*_头条.md
+*_百家号.md
+*_稀土掘金.md
+*_CSDN.md
+*_小红书*
+*_知识星球*
+*_短视频口播文案.md
+
+# 依赖与临时文件
+node_modules/
+test_opener.png
+test_sample_gzh.md
+__pycache__/
+
+# 打包产物（scripts/package.py 默认输出到项目根 dist/）
+dist/

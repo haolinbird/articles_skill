@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  gzh-sync.launchagent.plist.example
+  作用: 每日定时把「当日已生成」的文章草稿同步到公众号 + 掘金(无需人工开弹窗)。
+  前置:
+    1) Chrome 已带 --remote-debugging-port=9222 启动(见 chrome-debug.launchagent)。
+    2) config/pipeline.env 已配 WECHATSYNC_TOKEN。
+    3) 当天的文章产物已存在(2026xxxx_final_gzh.md / 2026xxxx_稀土掘金_发布版.md)。
+       —— 若想全自动, 应在本脚本前先跑流水线生成文章(单独一步, 暂未接入)。
+  安装(推荐 bootstrap 而非 load; 新版 macOS 上 load 常报 I/O error 5):
+    cp 本文件 ~/Library/LaunchAgents/com.haolin.gzh-sync.plist
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.haolin.gzh-sync.plist
+    # 若提示已加载，先 bootout 再 bootstrap:
+    #   launchctl bootout gui/$(id -u)/com.haolin.gzh-sync
+    # 旧版 macOS 可退回: launchctl load ~/Library/LaunchAgents/com.haolin.gzh-sync.plist
+  重要:
+    launchd 的 StartCalendarInterval 在 Mac 睡眠时不会触发, 仅在「唤醒且已登录」时触发。
+    若常在睡眠时段, 需在「系统设置-电池/节能」里安排唤醒, 或用 caffeinate 保活。
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.haolin.gzh-sync</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/scripts/sync_drafts.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>20</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>WorkingDirectory</key>
+  <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL</string>
+  <key>StandardOutPath</key>
+  <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL/logs/gzh-sync.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL/logs/gzh-sync.err</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/Users/haolin/.nvm/versions/node/v22.20.0/bin</string>
+  </dict>
+</dict>
+</plist>

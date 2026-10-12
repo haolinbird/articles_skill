@@ -1,0 +1,221 @@
+{
+  "_usage": {
+    "purpose": "平台启用状态与同步参数的唯一数据源（single source of truth）。",
+    "read_by": [
+      "调度器 S5（决定产出哪些平台的 md）",
+      "调度器 S6（决定同步哪些平台、喂哪个文件）",
+      "公众号文章转多平台 SKILL 〇节（只做指针，不复制本文件的任何值）"
+    ],
+    "rules": [
+      "启用/停用平台只改本文件的 enabled，其余文档一律不改。",
+      "任何 markdown 文档里出现平台清单或 ✅/❌，都是副本，属于应被删除的冗余。",
+      "登录状态是运行时数据，不写进本文件；每次跑 S6 前用 wechatsync auth 复核。",
+      "拆篇时文件名为 YYYYMMDD_pN_<平台>.md；未拆篇则去掉 _pN 段，为 YYYYMMDD_<平台>.md。"
+    ],
+    "paths": {
+      "articles": "articles",
+      "assets": "assets"
+    }
+  },
+
+  "defaults": {
+    "sync_cwd": "articles",
+    "sync_precheck": "wechatsync auth",
+    "sync_prereq": "Chrome 正在运行 + 扩展 hchobocdmclopcbnibdnoafilagadion 已唤醒 + 目标平台已登录"
+  },
+
+  "platforms": [
+    {
+      "id": "weixin",
+      "name": "公众号",
+      "enabled": true,
+      "kind": "article",
+      "produces_md_here": false,
+      "output_files": [],
+      "output_note": "由 S4b 排版产出 YYYYMMDD_pN_final_gzh.md，本技能与 S5 不重复产出 md。",
+      "wechatsync": {
+        "supported": true,
+        "param": "-p weixin",
+        "home_url": "https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN",
+        "cover": true,
+        "sync_input": "articles/YYYYMMDD_pN_final_gzh.md"
+      },
+      "strategy": "核心目标，必同步。用 --title 传标题；失败重试 1 次 → 降级喂素 YYYYMMDD_pN_concept.md 再试 1 次 → 仍失败列人工待办（重试前先做扩展唤醒）。",
+      "special": "排版版是内联样式 HTML，仅公众号可用；其他平台禁止喂这个文件。",
+      "rules_section": "公众号规则见调度器 S4b（排版脚本 gzh_format.cjs）"
+    },
+    {
+      "id": "juejin",
+      "name": "稀土掘金",
+      "enabled": true,
+      "kind": "article",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_稀土掘金.md",
+        "articles/YYYYMMDD_pN_稀土掘金_发布版.md"
+      ],
+      "output_note": "发布版 = YAML frontmatter（title/description/tags/categories/cover）+ 原生 Markdown 正文，是实际喂给 wechatsync 的文件。",
+      "wechatsync": {
+        "supported": true,
+        "param": "-p juejin",
+        "home_url": "https://juejin.cn/",
+        "cover": false,
+        "sync_input": "articles/YYYYMMDD_pN_稀土掘金_发布版.md"
+      },
+      "strategy": "直接同步。同步前按 S6 第 5 步刷新 token（开首页 → auth → sync）。",
+      "special": "禁止喂 final_gzh.md 内联样式版——掘金会剥离 HTML，代码块和表格易坏。",
+      "rules_section": "平台5：稀土掘金（Juejin）"
+    },
+    {
+      "id": "zhihu",
+      "name": "知乎",
+      "enabled": false,
+      "kind": "article",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_知乎.md"
+      ],
+      "output_note": "含原文配图。",
+      "wechatsync": {
+        "supported": true,
+        "param": "-p zhihu",
+        "home_url": "https://www.zhihu.com/",
+        "cover": false,
+        "sync_input": "articles/YYYYMMDD_pN_知乎.md"
+      },
+      "strategy": "恢复启用后直接同步；登录态以 wechatsync auth 实际输出为准。",
+      "special": "",
+      "rules_section": "平台1：知乎（Zhihu）"
+    },
+    {
+      "id": "toutiao",
+      "name": "今日头条",
+      "enabled": false,
+      "kind": "article",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_头条.md"
+      ],
+      "output_note": "含原文配图。",
+      "wechatsync": {
+        "supported": true,
+        "param": "-p toutiao",
+        "home_url": "https://mp.toutiao.com/",
+        "cover": false,
+        "sync_input": "articles/YYYYMMDD_pN_头条.md"
+      },
+      "strategy": "恢复启用后直接同步。",
+      "special": "",
+      "rules_section": "平台3：今日头条（Toutiao）"
+    },
+    {
+      "id": "baijiahao",
+      "name": "百家号",
+      "enabled": false,
+      "kind": "article",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_百家号.md"
+      ],
+      "output_note": "含原文配图。",
+      "wechatsync": {
+        "supported": true,
+        "param": "-p baijiahao",
+        "home_url": "https://baijiahao.baidu.com/",
+        "cover": false,
+        "sync_input": "articles/YYYYMMDD_pN_百家号.md"
+      },
+      "strategy": "恢复启用后直接同步。",
+      "special": "",
+      "rules_section": "平台4：百家号（Baijiahao）"
+    },
+    {
+      "id": "csdn",
+      "name": "CSDN",
+      "enabled": false,
+      "kind": "article",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_CSDN.md"
+      ],
+      "output_note": "含原文配图 + 开头 TOC。",
+      "wechatsync": {
+        "supported": true,
+        "param": "-p csdn",
+        "home_url": "https://mp.csdn.net/",
+        "cover": false,
+        "sync_input": "articles/YYYYMMDD_pN_CSDN.md"
+      },
+      "strategy": "恢复启用后直接同步。实测带图片直接成功，稳定性 ✅✅。",
+      "special": "是真改写不是复制：需教程风标题 + 正文开头加 TOC 目录。",
+      "rules_section": "平台7：CSDN"
+    },
+    {
+      "id": "xiaohongshu",
+      "name": "小红书",
+      "enabled": false,
+      "kind": "image_note",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_小红书.md",
+        "assets/YYYYMMDD_pN_小红书_封面.jpg",
+        "assets/YYYYMMDD_pN_小红书_图1.jpg",
+        "assets/YYYYMMDD_pN_小红书_图2.jpg"
+      ],
+      "output_note": "图文笔记，需封面（3:4 竖版，不写字）+ 内容图。",
+      "wechatsync": {
+        "supported": false,
+        "param": "",
+        "home_url": "",
+        "cover": false,
+        "sync_input": ""
+      },
+      "strategy": "不走 wechatsync，人工复制文案与配图发布。",
+      "special": "生成的小红书配图实际保存为 .jpg（文件名写 .png 但实际是 .jpg），引用时以实际扩展名为准。",
+      "rules_section": "平台2：小红书（Xiaohongshu / RED）"
+    },
+    {
+      "id": "zsxq",
+      "name": "知识星球",
+      "enabled": false,
+      "kind": "plain_text",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_知识星球.md",
+        "articles/YYYYMMDD_pN_知识星球_纯文本.txt"
+      ],
+      "output_note": "纯文本版由脚本产出：python3 scripts/md_to_plain.py YYYYMMDD_pN_知识星球.md，打印保留率 <90% 需人工核对。",
+      "wechatsync": {
+        "supported": false,
+        "param": "",
+        "home_url": "",
+        "cover": false,
+        "sync_input": ""
+      },
+      "strategy": "不走 wechatsync，人工粘贴纯文本发布（或走 api.zsxq.com 备用通道）。",
+      "special": "",
+      "rules_section": "平台6：知识星球（ZhiShiXingQiu / AI群星会）"
+    },
+    {
+      "id": "koudai",
+      "name": "短视频口播文案",
+      "enabled": false,
+      "kind": "script",
+      "produces_md_here": true,
+      "output_files": [
+        "articles/YYYYMMDD_pN_短视频口播文案.md"
+      ],
+      "output_note": "文案稿件，不发平台，供人工录制。",
+      "wechatsync": {
+        "supported": false,
+        "param": "",
+        "home_url": "",
+        "cover": false,
+        "sync_input": ""
+      },
+      "strategy": "不参与 S6 同步。",
+      "special": "",
+      "rules_section": "平台8：短视频口播文案"
+    }
+  ]
+}
