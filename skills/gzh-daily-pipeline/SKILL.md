@@ -8,6 +8,11 @@ description: 调度公众号每日内容流水线（选题→写作→配图→�
 > **定位**：调度器，不是执行器。只做编排，把多个外部 skill 串成一条流水线，不重复实现它们的逻辑。本 skill 只负责：定义产物交接契约、设置质量门、失败降级策略、断点续跑机制。
 > **设计目标**：每天早上无人值守跑完，产出「可以直接点发布」的草稿箱内容 + 一份执行报告。
 
+> **📍 路径占位符约定**（本文件刻意不写本机绝对路径，便于仓库公开分发）：
+> - `<项目根>` = 流水线工作目录，即本技能包所在的工作目录；执行时替换成你机器上的实际路径
+> - `<NODE_PATH>` = 排版脚本依赖的 `markdown-it` 所在目录，命令形式为 `export NODE_PATH=<你的 node workspace>/node_modules`
+> - 脚本内部的绝对路径由 `package.py --install-root <目标安装位>` 在打包时自动改写，不用手改
+
 ## 运行契约（一次性跑全流程 / 从某阶段续跑都走这一套）
 
 - **输入**：无（自动选题）。也支持从任意阶段续跑 —— S0-2 会检查产物清单，从第一个缺失的阶段开始
@@ -50,8 +55,8 @@ description: 调度公众号每日内容流水线（选题→写作→配图→�
 源码内两个绝对路径写死为本机目录（dev 阶段无需动）：
 
 ```
-SKILL_DIR = /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline
-WORK_DIR  = /Users/haolin/WorkBuddy/AI编程公众号SKILL/articles
+SKILL_DIR = <项目根>/skills/gzh-daily-pipeline
+WORK_DIR  = <项目根>/articles
 ```
 
 **两类引用的写法**：
@@ -159,7 +164,7 @@ Read `../gzh-write-enhanced/resources/author_voice.md` 的「## 文章赛道」�
 | # | 检查项 | 怎么查 | 缺失时的后果 |
 |---|--------|--------|--------------|
 | 1 | 日期 | `date +%Y%m%d` | — |
-| 2 | 排版依赖 | `ls /Users/haolin/.workbuddy/binaries/node/workspace/node_modules/markdown-it` 有输出 | S4b 排版脚本直接报错跑不起来 |
+| 2 | 排版依赖 | `ls <NODE_PATH>/markdown-it` 有输出 | S4b 排版脚本直接报错跑不起来 |
 | 3 | Wechatsync | `which wechatsync` 有输出，且 `config/pipeline.env` 里 `WECHATSYNC_TOKEN` 非空 | S6 无法分发 |
 | 4 | 图片 API（可选） | `config/pipeline.env` 里 `GZH_IMAGE_API_KEY` 与 `GZH_IMAGE_BASE_URL` 均非空 | S4-0 开篇人设图自动跳过（**当前为空，默认跳过**） |
 | 5 | 配图技能 | `~/.workbuddy/skills/ian-xiaohei-illustrations` 存在（符号链接也算） | S4 正文配图降级，终稿不带图继续 |
@@ -182,7 +187,7 @@ Read `../gzh-write-enhanced/resources/author_voice.md` 的「## 文章赛道」�
 
 #### S0-2 产物预检（断点续跑）
 
-按「产物清单」逐项检查 `/Users/haolin/WorkBuddy/AI编程公众号SKILL/articles` 下文件是否已存在：
+按「产物清单」逐项检查 `<项目根>/articles` 下文件是否已存在：
 
 - **已存在的阶段直接跳过**，视为完成，不重复劳动；
 - 从**第一个缺失产物的阶段**开始跑。
@@ -282,9 +287,9 @@ Read `../gzh-write-enhanced/resources/author_voice.md` 的「## 文章赛道」�
 
 ```bash
 # API 配置读 config/pipeline.env，也可用 --api-key/--base-url 覆盖
-node /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/scripts/gzh_opener.cjs \
+node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_opener.cjs \
   --keyword "{KW}" --persona "<OPENER_PERSONA>" --slogan "<OPENER_SLOGAN>" \
-  --out /Users/haolin/WorkBuddy/AI编程公众号SKILL/articles/YYYYMMDD_开篇图.png
+  --out <项目根>/articles/YYYYMMDD_开篇图.png
 ```
 
 模板原文：`"{KW}"，插画风格，可爱的{OPENER_PERSONA}在笔记本电脑前，绿色养眼背景，关键词文字放大作为背景显示，画面下方中间是小字"{OPENER_SLOGAN}"，文字不要太靠近上下的边缘，横版构图`
@@ -333,19 +338,19 @@ node /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/sc
 1. 运行排版转换脚本（公众号编辑器只认内联样式，素 Markdown 直接同步会丢排版）：
 
 ```bash
-export NODE_PATH=/Users/haolin/.workbuddy/binaries/node/workspace/node_modules
-node /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/scripts/gzh_format.cjs \
-  /Users/haolin/WorkBuddy/AI编程公众号SKILL/articles/YYYYMMDD_pN_concept.md \
+export NODE_PATH=<NODE_PATH>
+node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_format.cjs \
+  <项目根>/articles/YYYYMMDD_pN_concept.md \
   --theme warm --title "文章标题" \
-  --out /Users/haolin/WorkBuddy/AI编程公众号SKILL/articles/YYYYMMDD_pN_final_gzh.md
+  --out <项目根>/articles/YYYYMMDD_pN_final_gzh.md
 ```
 
 2. **先抽干净正文再排版**（直接喂终稿会把「40 个备选标题」「本篇自检」「待人工确认」一起排进去，这些不能发）。
    ⚠️ **必须用脚本抽，不要手工截**——手工按「h1 到本篇自检之前」截取会把开头那段 40 个备选标题整段带进去
    （2026-10-12 实测踩过）。脚本已内置防呆：先剥离代码块再定位标题，代码块里 `# target.py` 这类注释行不会误判。
    ```bash
-   python3 /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/scripts/extract_clean.py \
-     /Users/haolin/WorkBuddy/AI编程公众号SKILL/articles/YYYYMMDD_pN_final.md --expect-images <S4 张数>
+   python3 <项目根>/skills/gzh-daily-pipeline/scripts/extract_clean.py \
+     <项目根>/articles/YYYYMMDD_pN_final.md --expect-images <S4 张数>
    ```
    输出 `YYYYMMDD_pN_clean.md`；脚本自带自检（标题区/自检区残留、来源表缺失、图片数不符均 exit 1），
    **exit 非 0 就先修再排版**，不要绕过。终稿拆了上下篇就各跑一次（`_p1_` / `_p2_`，输出 `YYYYMMDD_p1_final_gzh.md`、`YYYYMMDD_p2_final_gzh.md`）。
@@ -358,7 +363,7 @@ node /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/sc
 
 > **启用平台由 `config/platforms.json`（项目根）决定，本节刻意不含平台清单。**
 
-1. **先 Read** `/Users/haolin/WorkBuddy/AI编程公众号SKILL/config/platforms.json` 得到 `enabled: true` 的平台列表，
+1. **先 Read** `<项目根>/config/platforms.json` 得到 `enabled: true` 的平台列表，
    再 **Read** `../公众号文章转多平台/SKILL.md`，**只执行这些启用的平台**
    （各平台规则段落见 json 的 `rules_section` 字段）。
    未启用平台：不产出对应 md、不生成小红书图、不跑 `md_to_plain.py`。
@@ -386,13 +391,21 @@ node /Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/sc
      Token 存放在**项目根的 `config/pipeline.env`**（含密钥，切勿提交）。CLI 只读环境变量、不支持配置文件，
      因此**每个新 shell 执行同步前必须先加载**：
      ```bash
-     set -a; source /Users/haolin/WorkBuddy/AI编程公众号SKILL/config/pipeline.env; set +a
+     set -a; source <项目根>/config/pipeline.env; set +a
      ```
      > 不要依赖 `~/.zshrc` 里的 export——实测在非交互 shell 中不会自动加载，会导致 `Invalid or missing token`。
    - 前置条件：**Chrome 正在运行 + Wechatsync 扩展已启用 + 目标平台已登录**。
    - 预检命令：`wechatsync auth`（检查各平台登录状态）；Chrome 未运行或 Token 缺失时同步步骤跳过、报告记人工待办。
    - 可用 `--dry-run` 验证命令拼装不实际同步。
-2. **cwd 必须是 `/Users/haolin/WorkBuddy/AI编程公众号SKILL/articles`**（图片相对路径解析依赖）。
+   - **调试 Chrome 起不来时（9222 无监听 / 报 non-default data directory）**：Chrome 禁止对默认 profile 开调试端口，
+     必须用克隆出的 `$HOME/chrome-debug-profile`。重建两步（顺序不能反，**先完全退出 Chrome**）：
+     ```bash
+     pkill -f "Google Chrome"                                        # 前提：完全退出
+     bash <项目根>/skills/gzh-daily-pipeline/scripts/clone_chrome_profile.sh   # ① 克隆 profile（保留扩展+登录态）
+     bash <项目根>/skills/gzh-daily-pipeline/scripts/chrome_debug_launch.sh    # ② 带 9222 端口启动
+     ```
+     ① 只在首次搭建、换机、或所有平台登录态一起失效时才需要重跑；日常由 launchd `com.haolin.chrome-debug` 自动拉起 ②。
+2. **cwd 必须是 `<项目根>/articles`**（图片相对路径解析依赖）。
 3. **扩展唤醒（必做，漏了必然超时）**：CLI 在 `localhost:9527` 起 WebSocket 服务，**被动等 Chrome 扩展连入**。
    Chrome MV3 的 service worker 会休眠，休眠期间 CLI 空等到超时，并**误报「需要安装 Chrome 扩展」**（不是真没装）。
    唤醒方式（macOS `open` 打不开 `chrome-extension://`，报 -10820/-10814；AppleScript 常缺自动化权限 -10004）：

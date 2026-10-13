@@ -128,6 +128,30 @@ bash skills/gzh-daily-pipeline/scripts/sync_drafts.sh
 ⚠️ **别点 Dock 上的 Chrome 图标拉起** —— 那样启动的实例**不带调试端口**，
 看起来浏览器开着，实际 9222 没人监听，S6 必然失败。要么等自动拉起，要么用上面 ③ 的命令。
 
+### 首次搭建 / 换机重建：调试 profile 从哪来
+
+上面 ③ 里的 `--user-data-dir=$HOME/chrome-debug-profile` **不是 Chrome 自带的**，是从真实 profile 克隆出来的。
+
+为什么要多这一步：Chrome 安全策略禁止对默认 profile 开远程调试端口
+（会报 `DevTools remote debugging requires a non-default data directory`），
+但登录态和 Wechatsync 扩展又必须保留 —— 只能复制一份到非默认目录。
+
+两个脚本已封装好，**严格按这个顺序跑**：
+
+```bash
+# ⓪ 前提：完全退出 Chrome（否则复制出的登录态可能不一致）
+pkill -f "Google Chrome"
+
+# ① 克隆 profile：排除 18G 缓存，只保留扩展 + 登录态（约数百 MB）
+bash skills/gzh-daily-pipeline/scripts/clone_chrome_profile.sh
+
+# ② 用克隆出的 profile 启动带调试端口的 Chrome
+bash skills/gzh-daily-pipeline/scripts/chrome_debug_launch.sh
+```
+
+① 只需做一次，之后 launchd 会自动用这个 profile 拉起。
+**换机、清过 Chrome 数据、或所有平台登录态一起失效时**，才需要重跑 ①。
+
 ### 常见故障对照
 
 | 现象 | 原因 | 怎么办 |
@@ -154,6 +178,55 @@ topics/           ← 采集到的原始热点
 dist/             ← 分发产物，改源文件后重打包，不要直接改这里
 .archive/         ← 历史归档（含删除文件的备份，可找回）
 ```
+
+## 分发打包（dist）
+
+`dist/` 是构建产物（已在 `.gitignore` 排除），**不要直接改这里的文件**，改完源文件重跑即可同步：
+
+```bash
+python3 skills/gzh-daily-pipeline/scripts/package.py
+```
+
+**要分发给其他人时，必须带 `--install-root`** —— 不带的话，包内脚本里写死的本机绝对路径不会被改写，
+对方 clone 下来运行会直接找不到路径：
+
+```bash
+python3 skills/gzh-daily-pipeline/scripts/package.py \
+  --install-root ~/.workbuddy/skills \
+  --work-dir ~/my-gzh-articles
+```
+
+| 参数 | 作用 |
+|---|---|
+| `--install-root` | 目标安装位，用于改写包内写死的技能包绝对路径 |
+| `--work-dir` | 目标机器上的产物目录（articles / assets / topics 的根） |
+| `--with-illustrations` | 一并打包可选配图技能 `ian-xiaohei-illustrations` |
+
+SKILL.md 里已不写本机路径（统一用 `<项目根>` / `<NODE_PATH>` 占位符），所以文档部分无需改写。
+安全：`package.py` 绝不复制含密钥的文件（`.env`、`config/pipeline.env`），只复制 `pipeline.env.example`。
+
+## 产物清理（articles / assets / topics 只增不减）
+
+这三个目录每天新增，几个月后会堆到几百 MB。用清理脚本按天保留：
+
+```bash
+# 预览（默认保留最近 30 天，不改动任何文件）
+python3 skills/gzh-daily-pipeline/scripts/cleanup_products.py
+
+# 归档到 .archive/cleanup-<今天>/（可找回）
+python3 skills/gzh-daily-pipeline/scripts/cleanup_products.py --apply
+
+# 确认不需要后再真删除
+python3 skills/gzh-daily-pipeline/scripts/cleanup_products.py --apply --delete
+```
+
+| 参数 | 说明 |
+|---|---|
+| `--days N` | 保留最近 N 天，默认 30 |
+| `--apply` | 实际执行（不给就只预览） |
+| `--delete` | 真删除；**必须与 `--apply` 同时给**，单独给会报错 |
+
+脚本认不出日期的文件一律跳过，不会误伤。建议每月跑一次预览，或挂到自动化里做「归档」而非删除。
 
 ---
 

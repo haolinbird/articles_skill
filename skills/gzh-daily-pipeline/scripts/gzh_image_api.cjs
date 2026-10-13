@@ -43,9 +43,12 @@ const path = require('path');
 // 统一配置入口：向上查找 config/pipeline.env 自动加载，不再各脚本自己找 .env
 const { loadEnv } = require('./load_config.cjs');
 
-const DEFAULT_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
-const DEFAULT_MODEL = 'qwen-image-2.0';
-const DEFAULT_PROTOCOL = 'dashscope';
+// 默认值必须与当前实际通道（商汤 SenseNova）一致：
+// 若留成阿里百炼，一旦 config/pipeline.env 缺 GZH_T2I_ENDPOINT，脚本会拿百炼端点+dashscope 协议
+// 去请求商汤的 Key，表现为诡异失败而非清晰报错（2026-10-13 修正）。
+const DEFAULT_ENDPOINT = 'https://token.sensenova.cn/v1/images/generations';
+const DEFAULT_MODEL = 'sensenova-u1.5-lite';
+const DEFAULT_PROTOCOL = 'openai';
 // 尺寸回退序列：先按用户指定，被拒则依次降级。不同厂商支持的分辨率差异很大。
 // ⚠️ 全部保持 16:9 横版，与 GZH_T2I_SIZE 及配图模板的构图要求一致，回退时不得退回方形。
 // ⚠️ 商汤要求宽高为 32 的倍数：1024x576(32×32 / 32×18)、512x288(32×16 / 32×9) 均合规。

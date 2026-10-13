@@ -26,7 +26,7 @@ description: "将微信公众号文章（URL或文本）一键转换为知乎、
 **执行前必须先 Read 该文件，不得凭推测或上次的印象决定跑哪些平台：**
 
 ```
-/Users/haolin/WorkBuddy/AI编程公众号SKILL/config/platforms.json
+<项目根>/config/platforms.json
 ```
 
 判断规则（全部读自 `platforms[].enabled`）：
@@ -579,7 +579,7 @@ foreach ($url in $images) {
   （在 Chrome 扩展设置里启用 MCP 连接后获取）。CLI 只读环境变量、不支持配置文件，
   因此**每个新 shell 执行同步前必须先加载**（不要依赖 `~/.zshrc`，非交互 shell 不会加载）：
   ```bash
-  set -a; source /Users/haolin/WorkBuddy/AI编程公众号SKILL/config/pipeline.env; set +a
+  set -a; source <项目根>/config/pipeline.env; set +a
   ```
 - **包名是 `@wechatsync/cli`，不是 `wechatsync`**（后者在 npm 已 404）：`npm install -g @wechatsync/cli`，命令名仍为 `wechatsync`。
 - 本机已安装 v1.0.0，位于 `~/.nvm/versions/node/v22.20.0/bin/wechatsync`。`which wechatsync` 有输出即可，无需重装。

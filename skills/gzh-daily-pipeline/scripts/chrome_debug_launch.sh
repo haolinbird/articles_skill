@@ -2,7 +2,7 @@
 #
 # chrome_debug_launch.sh — 带调试端口启动 Chrome（供 wechatsync 同步用）
 #
-# 用 --user-data-dir 指向克隆出的非默认调试 profile（/Users/haolin/chrome-debug-profile），
+# 用 --user-data-dir 指向克隆出的非默认调试 profile（$HOME/chrome-debug-profile，由 clone_chrome_profile.sh 生成），
 # 并打开 --remote-debugging-port=9222，供 wake_sw_v2.py / sync_with_keepalive.py
 # 通过 CDP 唤醒 wechatsync 扩展的 Service Worker 并推送草稿。
 #
@@ -12,7 +12,7 @@
 # 用法: chrome_debug_launch.sh
 set -u
 
-PROFILE="/Users/haolin/chrome-debug-profile"
+PROFILE="${HOME}/chrome-debug-profile"
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 # 1) 等旧实例退出(最多 20s)
