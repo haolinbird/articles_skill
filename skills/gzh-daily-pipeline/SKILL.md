@@ -16,7 +16,7 @@ description: 调度公众号每日内容流水线（选题→写作→配图→�
 ## 运行契约（一次性跑全流程 / 从某阶段续跑都走这一套）
 
 - **输入**：无（自动选题）。也支持从任意阶段续跑 —— S0-2 会检查产物清单，从第一个缺失的阶段开始
-- **产物**：见「二、产物清单」；执行报告写在 `articles/YYYYMMDD_pipeline_report.md`
+- **产物**：见「二、产物清单」；执行报告写在 `articles/YYYYMMDD/pipeline_report.md`
 - **幂等**：**S0-2 产物预检**保证不重复劳动，已存在的阶段直接跳过。
   拆篇场景下带 `_p1_` / `_p2_` 的项必须两篇都在才算该阶段完成
 - **前置**：见「S0-1 环境预检」表逐项检查（日期 / markdown-it / wechatsync / Token / 配图 API / 配图技能），
@@ -270,7 +270,7 @@ Read `../gzh-write-enhanced/resources/author_voice.md` 的「## 文章赛道」�
 
 > **产物目录（2026-10-07 修正）**：配图**不放** WORK_DIR，统一放项目根
 > `assets/YYYYMMDD-<主题>/`，命名 `NN-<slug>.jpg`（NN 为两位序号）。
-> md 在 `articles/` 下，引用写作 `../assets/YYYYMMDD-<主题>/NN-<slug>.jpg`。
+> md 在 `articles/YYYYMMDD/` 下，引用写作 `../../assets/YYYYMMDD-<主题>/NN-<slug>.jpg`（多一层 `../` 因文章进了日期子目录）。
 > 旧口径 `YYYYMMDD_图N.png`（放在 articles 下）已作废，勿再使用。
 
 #### S4-0 开篇人设图（⚠️ 可选，当前默认跳过）
@@ -289,7 +289,7 @@ Read `../gzh-write-enhanced/resources/author_voice.md` 的「## 文章赛道」�
 # API 配置读 config/pipeline.env，也可用 --api-key/--base-url 覆盖
 node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_opener.cjs \
   --keyword "{KW}" --persona "<OPENER_PERSONA>" --slogan "<OPENER_SLOGAN>" \
-  --out <项目根>/articles/YYYYMMDD_开篇图.png
+  --out <项目根>/articles/YYYYMMDD/开篇图.png
 ```
 
 模板原文：`"{KW}"，插画风格，可爱的{OPENER_PERSONA}在笔记本电脑前，绿色养眼背景，关键词文字放大作为背景显示，画面下方中间是小字"{OPENER_SLOGAN}"，文字不要太靠近上下的边缘，横版构图`
@@ -338,9 +338,9 @@ node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_opener.cjs \
 ```bash
 export NODE_PATH=<NODE_PATH>
 node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_format.cjs \
-  <项目根>/articles/YYYYMMDD_pN_concept.md \
+  <项目根>/articles/YYYYMMDD/pN_concept.md \
   --theme warm --title "文章标题" \
-  --out <项目根>/articles/YYYYMMDD_pN_final_gzh.md
+  --out <项目根>/articles/YYYYMMDD/pN_final_gzh.md
 ```
 
 2. **先抽干净正文再排版**（直接喂终稿会把「40 个备选标题」「本篇自检」「待人工确认」一起排进去，这些不能发）。
@@ -348,7 +348,7 @@ node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_format.cjs \
    （2026-10-12 实测踩过）。脚本已内置防呆：先剥离代码块再定位标题，代码块里 `# target.py` 这类注释行不会误判。
    ```bash
    python3 <项目根>/skills/gzh-daily-pipeline/scripts/extract_clean.py \
-     <项目根>/articles/YYYYMMDD_pN_final.md --expect-images <S4 张数>
+     <项目根>/articles/YYYYMMDD/pN_final.md --expect-images <S4 张数>
    ```
    输出 `YYYYMMDD_pN_clean.md`；脚本自带自检（标题区/自检区残留、来源表缺失、图片数不符均 exit 1），
    **exit 非 0 就先修再排版**，不要绕过。终稿拆了上下篇就各跑一次（`_p1_` / `_p2_`，输出 `YYYYMMDD_p1_final_gzh.md`、`YYYYMMDD_p2_final_gzh.md`）。

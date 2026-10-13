@@ -12,7 +12,7 @@
   - --delete     → 真删除（必须显式加，且与 --apply 同时给才生效）
 
 日期识别（认不出就跳过，绝不误伤）：
-  articles/YYYYMMDD_*.md      取前 8 位
+  articles/YYYYMMDD/          取目录名（8 位）
   assets/YYYYMMDD-<主题>/      取目录名前 8 位
   topics/YYYY-MM-DD.md         取文件名前 10 位
 
@@ -37,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 TARGETS = ("articles", "assets", "topics")
 PATTERNS = [
-    (r"^(\d{8})_", "%Y%m%d"),          # articles/20261012_final.md
+    (r"^(\d{8})$", "%Y%m%d"),          # articles/20261013/ (目录)
     (r"^(\d{8})-", "%Y%m%d"),          # assets/20261012-xxx/
     (r"^(\d{4}-\d{2}-\d{2})\.md$", "%Y-%m-%d"),  # topics/2026-10-12.md
 ]

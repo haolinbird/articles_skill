@@ -9,7 +9,7 @@ description: AI编程选题生成工具。读取topic-collector落盘的热点�
 
 - **输入**：`topics/YYYY-MM-DD.md`（工作区根，topic-collector 的产物；默认取最近一天，用户指定日期时取指定文件）。**文件不存在则提示先跑 topic-collector，不要凭空生成选题**
 - **产物**：**不落盘** —— TOP10 选题方案直接输出到对话，由调用方决定落盘位置
-  （调度器会在 S1 第 4 步把 TOP3 写入 `articles/YYYYMMDD_topics.md`）
+  （调度器会在 S1 第 4 步把 TOP3 写入 `articles/YYYYMMDD/topics.md`）
 - **幂等**：无副作用，可重复运行
 - **前置**：无配置项。受众与赛道口径读 `gzh-write-enhanced/resources/author_voice.md`，改口径改那一份
 

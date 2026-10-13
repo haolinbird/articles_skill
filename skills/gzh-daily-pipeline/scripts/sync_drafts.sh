@@ -20,8 +20,8 @@ PY="$ROOT/skills/gzh-daily-pipeline/scripts/wake_wechatsync.py"
 PYBIN="$(command -v python3 || echo python3)"
 DATE="$(date +%Y%m%d)"
 
-GZH="${1:-$ART/${DATE}_final_gzh.md}"
-JUEJIN="${2:-$ART/${DATE}_稀土掘金_发布版.md}"
+GZH="${1:-$ART/$DATE/final_gzh.md}"
+JUEJIN="${2:-$ART/$DATE/稀土掘金_发布版.md}"
 # 标题：优先用传入参数（两平台同用）；否则各取各的——
 # 掘金从 YAML frontmatter 取，公众号从首行 HTML 注释「标题: 」取（两平台标题常不同，不能共用）。
 TITLE="${3:-}"
@@ -51,15 +51,19 @@ if ! "$PYBIN" "$PY"; then
   exit 1
 fi
 
+# ⚠️ 纪律：wechatsync 输出禁止直接 `| head` 截断——head 提前关闭会给上游发 SIGPIPE，
+# 可能截断同步回执甚至中断同步。统一改为「整份写入 /tmp/*.log 后，再 filter < 文件 | tail 读」：
+# 写文件是完整落盘（无提前关闭），读端 tail 读到 EOF 不触发 SIGPIPE。
 echo "=== [2/3] auth 复核 ==="
-wechatsync auth --timeout 20000 2>&1 | filter | head -25
+wechatsync auth --timeout 20000 > /tmp/gzh_sync_auth.log 2>&1
+filter < /tmp/gzh_sync_auth.log | tail -25
 
 echo "=== [3/3] 同步草稿 ==="
 # 公众号必须带封面（config/platforms.json weixin.wechatsync.cover=true，漏带则草稿无封面图、
 # 发表按钮灰、提示「内容不完整」无法发表）。封面比例须为 16:9 / 1:1 / 2.35:1 之一，且应为小黑风格；
-# 开篇图(_开篇图.jpg)是绿色人设图、3:2 比例会被微信 200040 拒绝，绝不可作封面。
-# 封面图(_封面图.jpg)由 S4 生成，为 16:9 小黑风合规封面。
-COVER="$ART/${DATE}_封面图.jpg"
+# 开篇图(assets/ 下 _original/开篇图.png)是绿色人设图、3:2 比例会被微信 200040 拒绝，绝不可作封面。
+# 封面图(articles/YYYYMMDD/封面图.jpg)由 S4 生成，为 16:9 小黑风合规封面。
+COVER="$ART/$DATE/封面图.jpg"
 COVER_ARGS=""
 if [ -f "$COVER" ]; then
   COVER_ARGS="--cover $COVER"
@@ -68,14 +72,16 @@ else
   echo "⚠️ 未找到封面图 $COVER，公众号草稿将无封面、无法发表（请用 S4 生成 16:9 小黑封面图）"
 fi
 if [ -n "$GZH_TITLE" ]; then
-  wechatsync sync "$GZH"    -p weixin -t "$GZH_TITLE" $COVER_ARGS 2>&1 | filter | head -25
+  wechatsync sync "$GZH"    -p weixin -t "$GZH_TITLE" $COVER_ARGS > /tmp/gzh_sync_weixin.log 2>&1
 else
-  wechatsync sync "$GZH"    -p weixin $COVER_ARGS 2>&1 | filter | head -25
+  wechatsync sync "$GZH"    -p weixin $COVER_ARGS > /tmp/gzh_sync_weixin.log 2>&1
 fi
+filter < /tmp/gzh_sync_weixin.log | tail -25
 if [ -n "$JUEJIN_TITLE" ]; then
-  wechatsync sync "$JUEJIN" -p juejin -t "$JUEJIN_TITLE" 2>&1 | filter | head -25
+  wechatsync sync "$JUEJIN" -p juejin -t "$JUEJIN_TITLE" > /tmp/gzh_sync_juejin.log 2>&1
 else
-  wechatsync sync "$JUEJIN" -p juejin 2>&1 | filter | head -25
+  wechatsync sync "$JUEJIN" -p juejin > /tmp/gzh_sync_juejin.log 2>&1
 fi
+filter < /tmp/gzh_sync_juejin.log | tail -25
 
 echo "=== 同步完成 ==="

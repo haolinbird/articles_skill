@@ -10,7 +10,7 @@
       "启用/停用平台只改本文件的 enabled，其余文档一律不改。",
       "任何 markdown 文档里出现平台清单或 ✅/❌，都是副本，属于应被删除的冗余。",
       "登录状态是运行时数据，不写进本文件；每次跑 S6 前用 wechatsync auth 复核。",
-      "拆篇时文件名为 YYYYMMDD_pN_<平台>.md；未拆篇则去掉 _pN 段，为 YYYYMMDD_<平台>.md。"
+      "拆篇时文件名为 articles/YYYYMMDD/pN_<平台>.md；未拆篇则去掉 pN 段，为 articles/YYYYMMDD/<平台>.md。"
     ],
     "paths": {
       "articles": "articles",
@@ -32,15 +32,15 @@
       "kind": "article",
       "produces_md_here": false,
       "output_files": [],
-      "output_note": "由 S4b 排版产出 YYYYMMDD_pN_final_gzh.md，本技能与 S5 不重复产出 md。",
+      "output_note": "由 S4b 排版产出 articles/YYYYMMDD/pN_final_gzh.md，本技能与 S5 不重复产出 md。",
       "wechatsync": {
         "supported": true,
         "param": "-p weixin",
         "home_url": "https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN",
         "cover": true,
-        "sync_input": "articles/YYYYMMDD_pN_final_gzh.md"
+        "sync_input": "articles/YYYYMMDD/pN_final_gzh.md"
       },
-      "strategy": "核心目标，必同步。用 --title 传标题；失败重试 1 次 → 降级喂素 YYYYMMDD_pN_concept.md 再试 1 次 → 仍失败列人工待办（重试前先做扩展唤醒）。",
+      "strategy": "核心目标，必同步。用 --title 传标题；失败重试 1 次 → 降级喂素 articles/YYYYMMDD/pN_concept.md 再试 1 次 → 仍失败列人工待办（重试前先做扩展唤醒）。",
       "special": "排版版是内联样式 HTML，仅公众号可用；其他平台禁止喂这个文件。",
       "rules_section": "公众号规则见调度器 S4b（排版脚本 gzh_format.cjs）"
     },
@@ -51,8 +51,8 @@
       "kind": "article",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_稀土掘金.md",
-        "articles/YYYYMMDD_pN_稀土掘金_发布版.md"
+        "articles/YYYYMMDD/pN_稀土掘金.md",
+        "articles/YYYYMMDD/pN_稀土掘金_发布版.md"
       ],
       "output_note": "发布版 = YAML frontmatter（title/description/tags/categories/cover）+ 原生 Markdown 正文，是实际喂给 wechatsync 的文件。",
       "wechatsync": {
@@ -60,7 +60,7 @@
         "param": "-p juejin",
         "home_url": "https://juejin.cn/",
         "cover": false,
-        "sync_input": "articles/YYYYMMDD_pN_稀土掘金_发布版.md"
+        "sync_input": "articles/YYYYMMDD/pN_稀土掘金_发布版.md"
       },
       "strategy": "直接同步。同步前按 S6 第 5 步刷新 token（开首页 → auth → sync）。",
       "special": "禁止喂 final_gzh.md 内联样式版——掘金会剥离 HTML，代码块和表格易坏。",
@@ -73,7 +73,7 @@
       "kind": "article",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_知乎.md"
+        "articles/YYYYMMDD/pN_知乎.md"
       ],
       "output_note": "含原文配图。",
       "wechatsync": {
@@ -81,7 +81,7 @@
         "param": "-p zhihu",
         "home_url": "https://www.zhihu.com/",
         "cover": false,
-        "sync_input": "articles/YYYYMMDD_pN_知乎.md"
+        "sync_input": "articles/YYYYMMDD/pN_知乎.md"
       },
       "strategy": "恢复启用后直接同步；登录态以 wechatsync auth 实际输出为准。",
       "special": "",
@@ -94,7 +94,7 @@
       "kind": "article",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_头条.md"
+        "articles/YYYYMMDD/pN_头条.md"
       ],
       "output_note": "含原文配图。",
       "wechatsync": {
@@ -102,7 +102,7 @@
         "param": "-p toutiao",
         "home_url": "https://mp.toutiao.com/",
         "cover": false,
-        "sync_input": "articles/YYYYMMDD_pN_头条.md"
+        "sync_input": "articles/YYYYMMDD/pN_头条.md"
       },
       "strategy": "恢复启用后直接同步。",
       "special": "",
@@ -115,7 +115,7 @@
       "kind": "article",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_百家号.md"
+        "articles/YYYYMMDD/pN_百家号.md"
       ],
       "output_note": "含原文配图。",
       "wechatsync": {
@@ -123,7 +123,7 @@
         "param": "-p baijiahao",
         "home_url": "https://baijiahao.baidu.com/",
         "cover": false,
-        "sync_input": "articles/YYYYMMDD_pN_百家号.md"
+        "sync_input": "articles/YYYYMMDD/pN_百家号.md"
       },
       "strategy": "恢复启用后直接同步。",
       "special": "",
@@ -136,7 +136,7 @@
       "kind": "article",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_CSDN.md"
+        "articles/YYYYMMDD/pN_CSDN.md"
       ],
       "output_note": "含原文配图 + 开头 TOC。",
       "wechatsync": {
@@ -144,7 +144,7 @@
         "param": "-p csdn",
         "home_url": "https://mp.csdn.net/",
         "cover": false,
-        "sync_input": "articles/YYYYMMDD_pN_CSDN.md"
+        "sync_input": "articles/YYYYMMDD/pN_CSDN.md"
       },
       "strategy": "恢复启用后直接同步。实测带图片直接成功，稳定性 ✅✅。",
       "special": "是真改写不是复制：需教程风标题 + 正文开头加 TOC 目录。",
@@ -157,7 +157,7 @@
       "kind": "image_note",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_小红书.md",
+        "articles/YYYYMMDD/pN_小红书.md",
         "assets/YYYYMMDD_pN_小红书_封面.jpg",
         "assets/YYYYMMDD_pN_小红书_图1.jpg",
         "assets/YYYYMMDD_pN_小红书_图2.jpg"
@@ -181,10 +181,10 @@
       "kind": "plain_text",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_知识星球.md",
-        "articles/YYYYMMDD_pN_知识星球_纯文本.txt"
+        "articles/YYYYMMDD/pN_知识星球.md",
+        "articles/YYYYMMDD/pN_知识星球_纯文本.txt"
       ],
-      "output_note": "纯文本版由脚本产出：python3 scripts/md_to_plain.py YYYYMMDD_pN_知识星球.md，打印保留率 <90% 需人工核对。",
+      "output_note": "纯文本版由脚本产出：python3 scripts/md_to_plain.py articles/YYYYMMDD/知识星球.md，打印保留率 <90% 需人工核对（⚠️ 该脚本当前不存在，启用前需先补齐）。",
       "wechatsync": {
         "supported": false,
         "param": "",
@@ -203,7 +203,7 @@
       "kind": "script",
       "produces_md_here": true,
       "output_files": [
-        "articles/YYYYMMDD_pN_短视频口播文案.md"
+        "articles/YYYYMMDD/pN_短视频口播文案.md"
       ],
       "output_note": "文案稿件，不发平台，供人工录制。",
       "wechatsync": {

@@ -93,11 +93,11 @@ cp config/pipeline.env.example config/pipeline.env
 
 | 技能 | 作用 | 输入 → 产物 | 能单独跑吗 |
 |---|---|---|---|
-| `gzh-daily-pipeline` | **调度器**，串起全流程 | 无 → 全流程产物 + `articles/YYYYMMDD_pipeline_report.md` | 就是入口 |
+| `gzh-daily-pipeline` | **调度器**，串起全流程 | 无 → 全流程产物 + `articles/YYYYMMDD/pipeline_report.md` | 就是入口 |
 | `topic-collector` | 采集 AI 热点 | 网络 → `topics/YYYY-MM-DD.md` | ✅ |
 | `topic-generator` | 热点筛出 TOP10 选题 | `topics/YYYY-MM-DD.md` → 对话输出（不落盘） | ✅ |
 | `topic-reviewer` | 选题打分 / 一票否决 | 选题 → 对话输出（不落盘） | ✅ |
-| `gzh-write-enhanced` | 三版写作 + 四层自检 | TOP1 选题 → `articles/YYYYMMDD_abc.md` | ✅ |
+| `gzh-write-enhanced` | 三版写作 + 四层自检 | TOP1 选题 → `articles/YYYYMMDD/abc.md` | ✅ |
 | `公众号文章转多平台` | 按平台风格改写 | 终稿 md → 按 `platforms.json` 产出 | ✅ |
 | `ian-xiaohei-illustrations` | 小黑手绘配图 | 正文 + shot list → `assets/YYYYMMDD-<主题>/NN-<slug>.png` | ✅ |
 
@@ -207,7 +207,7 @@ config/           ← 配置唯一入口（改配置从这里进）
   pipeline.env.example  模板（无密钥，可提交）
   platforms.json        L2 平台开关（9 个平台）
 skills/           ← 7 个技能，每个可独立运行
-articles/         ← 流水线产物（终稿、排版稿、报告）
+articles/         ← 流水线产物按日归档（articles/YYYYMMDD/：终稿、排版稿、报告、封面图）
 assets/           ← 配图，按 assets/YYYYMMDD-<主题>/ 归档
 topics/           ← 采集到的原始热点
 dist/             ← 分发产物，改源文件后重打包，不要直接改这里

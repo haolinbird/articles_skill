@@ -4,7 +4,7 @@
 S4b 前置：从终稿抽取「可发布的干净正文」，供 gzh_format.cjs 排版。
 
 为什么需要这个脚本：
-  终稿（YYYYMMDD[_pN]_final.md）里混着三类不能发的内容，手工截取极易漏：
+  终稿（articles/YYYYMMDD[/pN]/final.md）里混着三类不能发的内容，手工截取极易漏：
     1. 开头的「## 备选标题（40 个）」标题区（40 条标题，排进正文等于事故）
     2. 结尾的「## 本篇自检」自检表
     3. 「## 待人工确认」等内部段落
@@ -17,8 +17,8 @@ S4b 前置：从终稿抽取「可发布的干净正文」，供 gzh_format.cjs 
    这类以 # 开头的注释行，直接按 ^# 匹配会把代码行误判成标题。
 
 用法：
-  python3 extract_clean.py articles/20261012_final.md
-  python3 extract_clean.py articles/20261011_p1_final.md -o articles/20261011_p1_clean.md
+  python3 extract_clean.py articles/20261012/final.md
+  python3 extract_clean.py articles/20261011/p1_final.md -o articles/20261011/p1_clean.md
   python3 extract_clean.py <final.md> --stop-heading "## 本篇自检" --check-only
 
 退出码：0 成功；1 自检未通过（已写文件也会被保留，便于人工排查）；2 输入异常
@@ -145,7 +145,18 @@ def main():
 
     issues, n_img = selfcheck(clean, args.expect_images)
 
-    out = args.out or src.replace("_final.md", "_clean.md")
+    if args.out:
+        out = args.out
+    elif src.endswith("final.md"):
+        # 新结构 articles/YYYYMMDD/final.md -> clean.md
+        out = src[: -len("final.md")] + "clean.md"
+    elif "_final.md" in src:
+        # 兼容旧结构 articles/YYYYMMDD_final.md -> YYYYMMDD_clean.md
+        out = src.replace("_final.md", "_clean.md")
+    else:
+        # 兜底：避免覆盖输入，派生 _clean 文件名
+        base, ext = os.path.splitext(src)
+        out = base + "_clean" + ext
     if out == src:
         print(f"❌ 输出路径与输入相同，拒绝覆盖：{out}")
         return 2

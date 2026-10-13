@@ -12,7 +12,7 @@ description: AI编程应用热点采集工具。从X、Hacker News、Reddit、Pr
 - **幂等**：重跑覆盖同日文件（同一天多次跑，以最后一次为准）
 - **前置**：Python 3 可运行；**无需任何 API Key**
 
-> ⚠️ 易错：本技能产物是**原始热点**，与调度器 S1 落盘的 `articles/YYYYMMDD_topics.md`
+> ⚠️ 易错：本技能产物是**原始热点**，与调度器 S1 落盘的 `articles/YYYYMMDD/topics.md`
 > （TOP3 选题方案）**不是同一个文件**——目录和命名都不同，不要互相顶替，也不要改 collector 的落盘路径。
 
 ## 采集流程

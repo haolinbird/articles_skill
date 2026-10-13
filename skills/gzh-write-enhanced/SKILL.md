@@ -13,8 +13,8 @@ description: 公众号文章增强版写作助手。三版并行（反直觉洞�
 
 ## 运行契约（单独跑 / 被调度器调用都走这一套）
 
-- **输入**：选题方案，取 `articles/YYYYMMDD_topics.md` 的 TOP1（单独跑时也可由用户直接给主题）
-- **产物**：`articles/YYYYMMDD_abc.md`（A 版反直觉洞察 / B 版观点分析 / C 版实操教程，三版同文件）
+- **输入**：选题方案，取 `articles/YYYYMMDD/topics.md` 的 TOP1（单独跑时也可由用户直接给主题）
+- **产物**：`articles/YYYYMMDD/abc.md`（A 版反直觉洞察 / B 版观点分析 / C 版实操教程，三版同文件）
 - **幂等**：重跑覆盖同名文件
 - **前置**：`resources/author_voice.md` —— **必须先读，且优先级最高**，
   覆盖 `resources/xiaohu_style_dna.md` 与 `resources/xiaohu_narrative_voice.md`（两份第三方人设已标注降级）。
