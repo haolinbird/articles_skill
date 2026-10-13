@@ -78,7 +78,7 @@ WORK_DIR  = <项目根>/articles
 | S1 选题 | `../topic-collector` + `../topic-generator` + `../topic-reviewer` | 必需 | 任何能产出「选题+评分+原文链接」的采集流程 |
 | S2 写作 | `../gzh-write-enhanced` | 必需 | 任何写作 skill，产物含 A/B/C 三版 |
 | S3 合并 | `../gzh-write-enhanced`（同 S2） | 必需 | 任何写作 skill，产物含 A+C 合并终稿 + 四层自检（硬性规则 / 风格一致性 / 内容质量 / 活人感） |
-| S4 配图 | `ian-xiaohei-illustrations`（16:9 手绘风格） | **可选** | 任何配图 skill，产物为图片文件 |
+| S4 配图 | `ian-xiaohei-illustrations`（16:9 手绘风格，仓库内已 vendored） | **可选** | 任何配图 skill，产物为图片文件 |
 | S4b 排版 | （自包含 `node scripts/gzh_format.cjs`） | 必需 | — |
 | S5 多平台 | `../公众号文章转多平台` | 必需 | 按各平台风格自行改写（9 平台规则全在；**启用哪些由 `config/platforms.json` 决定**，见该 skill 〇节指针） |
 | S6 分发 | （自包含，跑 npm 全局 `wechatsync`） | 必需 | 任何能同步到各平台草稿箱的工具 |
@@ -164,10 +164,10 @@ Read `../gzh-write-enhanced/resources/author_voice.md` 的「## 文章赛道」�
 | # | 检查项 | 怎么查 | 缺失时的后果 |
 |---|--------|--------|--------------|
 | 1 | 日期 | `date +%Y%m%d` | — |
-| 2 | 排版依赖 | `ls <NODE_PATH>/markdown-it` 有输出 | S4b 排版脚本直接报错跑不起来 |
+| 2 | 排版依赖 | 项目根 `node_modules/markdown-it` 存在（`npm install` 后） | S4b 排版脚本直接报错跑不起来 |
 | 3 | Wechatsync | `which wechatsync` 有输出，且 `config/pipeline.env` 里 `WECHATSYNC_TOKEN` 非空 | S6 无法分发 |
 | 4 | 图片 API（可选） | `config/pipeline.env` 里 `GZH_IMAGE_API_KEY` 与 `GZH_IMAGE_BASE_URL` 均非空 | S4-0 开篇人设图自动跳过（**当前为空，默认跳过**） |
-| 5 | 配图技能 | `~/.workbuddy/skills/ian-xiaohei-illustrations` 存在（符号链接也算） | S4 正文配图降级，终稿不带图继续 |
+| 5 | 配图技能 | 仓库内 `skills/ian-xiaohei-illustrations` 存在（已 vendored，含 `NOTICE` 署名） | S4 正文配图按该技能 `references/prompt-template.md` 风格生成 |
 | 6 | Chrome 扩展 | 只能到 S6 才验证；此处仅记录「S6 需先唤醒扩展」，见 S6 FAQ | S6 首次同步大概率超时 |
 
 检查结果写成一张表放进 S7 报告，便于回溯「某次失败是因为哪个环境项缺了」。
@@ -300,7 +300,7 @@ node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_opener.cjs \
 
 #### S4-1 正文配图（核心环节，不可省）
 
-1. 配图 skill 默认推荐 ian-xiaohei-illustrations（16:9 手绘风，第三方，WorkBuddy skillhub 搜索「小黑插画配图」安装；或替换为你自己的配图 skill）。安装后 **Read** 其 SKILL.md 及 references。
+1. 配图风格源是仓库内已 vendored 的 `ian-xiaohei-illustrations`（16:9 手绘风，第三方技能，随仓库分发并含 `NOTICE` 署名；也可替换为你自己的配图技能）。**Read** 其 `references/prompt-template.md` 等套用风格 —— 注意实际出图走 `gzh-daily-pipeline/scripts/gzh_image_api.cjs`，本技能只作风格模板。
 2. 通读终稿，挑认知锚点（核心判断 / 前后对比 / 分流闭环 / 常见坑 / 落地顺序等），**先出 shot list 再逐张生成**。
    **每篇固定 `{GZH_IMAGES_PER_ARTICLE}` 张**（⚙️ 唯一定义在 `config/pipeline.env`；
    拆篇时按篇计算：总张数 = 篇数 × 该值）。
@@ -310,12 +310,10 @@ node <项目根>/skills/gzh-daily-pipeline/scripts/gzh_opener.cjs \
    智谱通道的水印遮盖依赖右下角留白，画面元素伸进该区域会被遮盖矩形切断。
 4. **拆篇场景按篇独立出 shot list**，上下篇配图**不得串用**（上篇 01/02/03/04/06，下篇 05/07 那类分配写进 shot list 里）。
 5. 逐张生成，保存为 `assets/YYYYMMDD-<主题>/NN-<slug>.png`。
-5b. **生成后立即遮水印**（智谱通道必做；脚本自动读 `GZH_COVER_WATERMARK` 开关，
-   百炼等无水印通道开关为 false 时原样跳过，所以**无条件执行也安全**）：
-   ```bash
-   python3 <带 Pillow 的解释器> ../scripts/cover_watermark.py assets/YYYYMMDD-<主题>/*.png
-   ```
-   遮盖区域固定在右下角（按比例适配分辨率）。需解释器已安装 Pillow。
+5b. **水印由生图 API 在生成时处理**（不再需要本地遮水印脚本）：
+   商汤通道 `watermark=false` 即免费去水印；脚本按 `GZH_T2I_WATERMARK` / `GZH_COVER_WATERMARK`
+   开关透传给 API（旧通道如需本地遮盖再启用对应逻辑），所以**无条件执行也安全**。
+   生成产出的就是无（或少）水印的原图，直接进入下一步压缩。
 6. **⭐ 必须压缩后再用**（2026-10-07 实测，跳过此步会导致 S6 图片全部上传失败）：
    1536×1024 的 PNG 单张 1.5–1.9 MB，同步时**5 张全部失败**；压到 1080 宽 JPEG（150–250 KB）后 **100% 成功**。
    ```bash

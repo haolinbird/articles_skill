@@ -17,7 +17,7 @@ set -u
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 ART="$ROOT/articles"
 PY="$ROOT/skills/gzh-daily-pipeline/scripts/wake_wechatsync.py"
-PYBIN=/Users/haolin/.workbuddy/binaries/python/envs/default/bin/python
+PYBIN="$(command -v python3 || echo python3)"
 DATE="$(date +%Y%m%d)"
 
 GZH="${1:-$ART/${DATE}_final_gzh.md}"

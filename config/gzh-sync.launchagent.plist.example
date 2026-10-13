@@ -25,7 +25,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL/skills/gzh-daily-pipeline/scripts/sync_drafts.sh</string>
+    <string>{{PROJECT_ROOT}}/skills/gzh-daily-pipeline/scripts/sync_drafts.sh</string>
   </array>
   <key>StartCalendarInterval</key>
   <dict>
@@ -35,15 +35,15 @@
     <integer>0</integer>
   </dict>
   <key>WorkingDirectory</key>
-  <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL</string>
+  <string>{{PROJECT_ROOT}}</string>
   <key>StandardOutPath</key>
-  <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL/logs/gzh-sync.out</string>
+  <string>{{PROJECT_ROOT}}/logs/gzh-sync.out</string>
   <key>StandardErrorPath</key>
-  <string>/Users/haolin/WorkBuddy/AI编程公众号SKILL/logs/gzh-sync.err</string>
+  <string>{{PROJECT_ROOT}}/logs/gzh-sync.err</string>
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/usr/local/bin:/usr/bin:/bin:/Users/haolin/.nvm/versions/node/v22.20.0/bin</string>
+    <string>/usr/local/bin:/usr/bin:/bin:{{NODE_BIN}}</string>
   </dict>
 </dict>
 </plist>

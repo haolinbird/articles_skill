@@ -1,0 +1,12 @@
+{
+  "name": "gzh-daily-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "公众号每日自动化流水线：选题→写作→配图→排版→分发",
+  "scripts": {
+    "format": "node skills/gzh-daily-pipeline/scripts/gzh_format.cjs"
+  },
+  "dependencies": {
+    "markdown-it": "^15.0.2"
+  }
+}

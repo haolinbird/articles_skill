@@ -12,7 +12,7 @@
     #   launchctl bootout gui/$(id -u)/com.haolin.chrome-debug
     # 旧版 macOS 可退回: launchctl load "$HOME/Library/LaunchAgents/com.haolin.chrome-debug.plist"
   注意:
-    1) --user-data-dir 必须指向「克隆出的非默认调试 profile」(/Users/haolin/chrome-debug-profile)，
+    1) --user-data-dir 必须指向「克隆出的非默认调试 profile」({{HOME}}/chrome-debug-profile)，
        **不能直接指向真实默认 profile** —— Chrome 会拒绝 (报 "DevTools remote debugging requires
        a non-default data directory") 且不开 CDP。该调试 profile 由 clone_chrome_profile.sh 生成。
        路径含空格，但 plist 里每个 <string> 是一项 argv，空格不会被切开。
@@ -37,7 +37,7 @@
   <array>
     <string>/Applications/Google Chrome.app/Contents/MacOS/Google Chrome</string>
     <string>--remote-debugging-port=9222</string>
-    <string>--user-data-dir=/Users/haolin/chrome-debug-profile</string>
+    <string>--user-data-dir={{HOME}}/chrome-debug-profile</string>
     <string>--no-first-run</string>
     <string>chrome-extension://hchobocdmclopcbnibdnoafilagadion/src/popup/index.html</string>
   </array>

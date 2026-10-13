@@ -7,6 +7,41 @@
 
 ---
 
+## 🚀 从零部署（clone 后第一次跑）
+
+**设计目标**：本仓库自包含——所有运行必需的资源都已进 git（含 vendored 的 `ian-xiaohei-illustrations` 配图技能、Node 依赖声明 `package.json`、配置模板）。你 `git clone` 后按下面 5 步配好**本机专属项**（密钥、路径、外部工具），即可本地直接跑整条流水线，**无需再装任何 WorkBuddy 用户级技能**。
+
+```bash
+# ① 拉代码
+git clone <你的仓库地址> gzh && cd gzh
+
+# ② 装 Node 依赖（仅 markdown-it，用于 S4b 排版）
+#    Python 脚本全标准库，无需任何 pip 安装
+npm install
+
+# ③ 装外部命令行工具（系统级依赖，不进仓库）
+npm install -g @wechatsync/cli        # S6 分发用的 wechatsync CLI
+
+# ④ 配密钥：从模板复制后填入真实值（pipeline.env 已被 .gitignore 排除，不会入库）
+cp config/pipeline.env.example config/pipeline.env
+#   用编辑器打开 config/pipeline.env，至少填两项：
+#     GZH_T2I_API_KEY / GZH_T2I_BASE_URL   商汤生图 Key（S4 配图；留空则自动跳过配图）
+#     WECHATSYNC_TOKEN                     wechatsync Token（S6 同步；见下方「初次拿 Token」）
+#   其余默认值已在 .example 里给好，一般不用动
+
+# ⑤ 跑流水线（调度器 S0 预检会逐项查环境，缺失项写进报告、不阻断运行）
+#   具体触发方式见 WorkBuddy 里对 gzh-daily-pipeline 技能的调用；
+#   也可单独跑某个环节（见下文「技能清单」）
+```
+
+**初次拿 wechatsync Token**：在 Chrome 里装好「文章同步助手」扩展（扩展 ID 见 `config/chrome-debug.launchagent.plist.example`），登录公众号 / 掘金网页版后运行 `wechatsync auth`，会把 Token 写进扩展本地存储；再把该 Token 抄进 `config/pipeline.env` 的 `WECHATSYNC_TOKEN`，之后每次同步前 `wechatsync auth` 会刷新它。
+
+**可选：无人值守定时（macOS launchd）**：`config/` 下有两个 `*.launchagent.plist.example` 模板，把里面的 `{{PROJECT_ROOT}}` / `{{HOME}}` / `{{NODE_BIN}}` 占位符替换成你的实际路径，`launchctl bootstrap` 加载即可。它们负责 S6 唯一依赖的本机运行时——带调试端口的 Chrome + 唤醒扩展（详见「首次搭建 / 换机重建」一节）。
+
+> ⚠️ 本仓库是**公开仓库**：`config/pipeline.env` 已在 `.gitignore` 排除，只有 `pipeline.env.example` 模板入库。**切勿把真实密钥提交进 git。**
+
+---
+
 ## 🔧 改配置前先看这里
 
 **只查这一张表，按你想做的事找行，然后只改那一个文件。**
@@ -187,6 +222,8 @@ dist/             ← 分发产物，改源文件后重打包，不要直接改�
 python3 skills/gzh-daily-pipeline/scripts/package.py
 ```
 
+> 如果你只是用 `git clone` 下来的仓库**自己跑**流水线，**不需要打包**——脚本直接读源文件即可；`dist/` 仅用于把技能分发给没有本仓库的人。
+
 **要分发给其他人时，必须带 `--install-root`** —— 不带的话，包内脚本里写死的本机绝对路径不会被改写，
 对方 clone 下来运行会直接找不到路径：
 
@@ -202,7 +239,7 @@ python3 skills/gzh-daily-pipeline/scripts/package.py \
 | `--work-dir` | 目标机器上的产物目录（articles / assets / topics 的根） |
 | `--with-illustrations` | 一并打包可选配图技能 `ian-xiaohei-illustrations` |
 
-SKILL.md 里已不写本机路径（统一用 `<项目根>` / `<NODE_PATH>` 占位符），所以文档部分无需改写。
+SKILL.md 里已不写本机路径（统一用 `<项目根>` 占位符），Node 依赖通过仓库内 `node_modules/`（`npm install`）解决，Python 脚本全标准库，**所以文档部分无需改写**。
 安全：`package.py` 绝不复制含密钥的文件（`.env`、`config/pipeline.env`），只复制 `pipeline.env.example`。
 
 ## 产物清理（articles / assets / topics 只增不减）
@@ -246,16 +283,17 @@ python3 skills/gzh-daily-pipeline/scripts/cleanup_products.py --apply --delete
 **修法**：测本机端口一律加 `--noproxy '*'`，并且校验响应内容确实是 CDP 返回的 JSON，两者缺一不可。
 （同理，`launchctl list | grep` 也可能返回空列表造成假阴性 —— 要用 `launchctl print gui/$(id -u)/<label>` 精确查。）
 
-**3. 有 `.git` 不等于能回滚 —— 目前只有 1 次提交，200+ 改动停在暂存区。**
-项目 2026-10-10 初始化过 git，但此后大量改动只 `git add` 未 `git commit`，
-**实际回滚能力约等于零**，别以为有 `.git` 就敢删文件。
-删之前务必先确认它是否真的进过提交：
+**3. 有 `.git` 不等于能回滚 —— 删文件前先确认它进没进过提交。**
+项目日常改动常只 `git add` 不 `git commit`，**真正能安全回滚的只有已提交的版本**（当前分支
+已有多次提交，但仍有改动停在暂存/工作区）。别以为有 `.git` 就敢删文件。删之前务必先确认
+它是否真的进过 HEAD 提交：
 
 ```bash
 git ls-tree -r HEAD --name-only | grep <文件名>   # 有输出 = 安全；无输出 = 删了就没了
 ```
 
-（刚才删的根 `author_voice.md` 就从未进过 HEAD，是靠手动备份到 `.archive/` 才保住的。）
+（之前删的根 `author_voice.md` 就从未进过 HEAD，是靠手动备份到 `.archive/` 才保住的。）
 
-另外：**先建 `.gitignore` 再 commit**。`config/pipeline.env` 此刻正躺在暂存区，
-一旦 commit，里面的 Wechatsync Token 就永久进了版本历史 —— 事后删文件也洗不掉。
+另外：**先建 `.gitignore` 再 commit / push**。`config/pipeline.env` 含 Wechatsync Token 等密钥，
+必须确认它已被 `.gitignore` 覆盖（用 `git check-ignore config/pipeline.env` 验证返回该路径）
+再提交 —— 一旦落入版本历史，密钥就永久洗不掉（需重写历史或 force push）。
